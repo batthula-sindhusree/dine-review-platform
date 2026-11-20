@@ -1,0 +1,145 @@
+﻿{
+  "info": {
+    "name": "Dine and Review - Restaurant Review Platform",
+    "description": "API collection for Customer, Owner and Admin operations.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Customer Register",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\"name\":\"Test Customer\",\"email\":\"customer@example.com\",\"password\":\"Test@12345\"}","options":{"raw":{"language":"json"}}},
+            "url": "{{baseUrl}}/auth/register"
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\"email\":\"customer@example.com\",\"password\":\"Test@12345\"}","options":{"raw":{"language":"json"}}},
+            "url": "{{baseUrl}}/auth/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Restaurants",
+      "item": [
+        {"name":"Get All Restaurants","request":{"method":"GET","url":"{{baseUrl}}/restaurants"}},
+        {"name":"Search Restaurants","request":{"method":"GET","url":"{{baseUrl}}/restaurants?search={{search}}&location={{location}}&cuisine={{cuisine}}"}},
+        {"name":"Get Restaurant Details","request":{"method":"GET","url":"{{baseUrl}}/restaurants/{{restaurantId}}"}},
+        {"name":"Get Rating Distribution","request":{"method":"GET","url":"{{baseUrl}}/restaurants/{{restaurantId}}/ratings"}},
+        {
+          "name":"Create Restaurant (Admin)",
+          "request":{
+            "method":"POST",
+            "header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{adminToken}}"}],
+            "body":{"mode":"raw","raw":"{\"name\":\"Sample Restaurant\",\"location\":\"Hyderabad\",\"cuisine\":\"Indian\"}","options":{"raw":{"language":"json"}}},
+            "url":"{{baseUrl}}/restaurants"
+          }
+        },
+        {
+          "name":"Assign Owner (Admin)",
+          "request":{
+            "method":"PUT",
+            "header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{adminToken}}"}],
+            "body":{"mode":"raw","raw":"{\"ownerId\":\"{{userId}}\"}","options":{"raw":{"language":"json"}}},
+            "url":"{{baseUrl}}/restaurants/{{restaurantId}}/assign-owner"
+          }
+        },
+        {
+          "name":"Update Restaurant (Owner)",
+          "request":{
+            "method":"PUT",
+            "header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{ownerToken}}"}],
+            "body":{"mode":"raw","raw":"{\"name\":\"Updated Restaurant\",\"location\":\"Hyderabad\",\"cuisine\":\"Indian\"}","options":{"raw":{"language":"json"}}},
+            "url":"{{baseUrl}}/restaurants/{{restaurantId}}"
+          }
+        },
+        {
+          "name":"Delete Restaurant (Admin)",
+          "request":{
+            "method":"DELETE",
+            "header":[{"key":"Authorization","value":"Bearer {{adminToken}}"}],
+            "url":"{{baseUrl}}/restaurants/{{restaurantId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {"name":"Get Restaurant Reviews","request":{"method":"GET","url":"{{baseUrl}}/reviews/{{restaurantId}}"}},
+        {
+          "name":"Add Review (Customer)",
+          "request":{
+            "method":"POST",
+            "header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{customerToken}}"}],
+            "body":{"mode":"raw","raw":"{\"restaurant\":\"{{restaurantId}}\",\"rating\":5,\"comment\":\"Great food and service\"}","options":{"raw":{"language":"json"}}},
+            "url":"{{baseUrl}}/reviews"
+          }
+        },
+        {
+          "name":"Update Review (Customer)",
+          "request":{
+            "method":"PUT",
+            "header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{customerToken}}"}],
+            "body":{"mode":"raw","raw":"{\"rating\":4,\"comment\":\"Updated review\"}","options":{"raw":{"language":"json"}}},
+            "url":"{{baseUrl}}/reviews/{{reviewId}}"
+          }
+        },
+        {
+          "name":"Delete Review (Customer)",
+          "request":{
+            "method":"DELETE",
+            "header":[{"key":"Authorization","value":"Bearer {{customerToken}}"}],
+            "url":"{{baseUrl}}/reviews/{{reviewId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {"name":"Dashboard","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{adminToken}}"}],"url":"{{baseUrl}}/admin/dashboard"}},
+        {"name":"Get All Users","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{adminToken}}"}],"url":"{{baseUrl}}/admin/users"}},
+        {"name":"Get All Reviews","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{adminToken}}"}],"url":"{{baseUrl}}/admin/reviews"}},
+        {
+          "name":"Create Owner",
+          "request":{
+            "method":"POST",
+            "header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{adminToken}}"}],
+            "body":{"mode":"raw","raw":"{\"name\":\"Test Owner\",\"email\":\"owner@example.com\",\"password\":\"Owner@12345\"}","options":{"raw":{"language":"json"}}},
+            "url":"{{baseUrl}}/admin/owners"
+          }
+        },
+        {"name":"Delete User","request":{"method":"DELETE","header":[{"key":"Authorization","value":"Bearer {{adminToken}}"}],"url":"{{baseUrl}}/admin/users/{{userId}}"}},
+        {"name":"Delete Review","request":{"method":"DELETE","header":[{"key":"Authorization","value":"Bearer {{adminToken}}"}],"url":"{{baseUrl}}/admin/reviews/{{reviewId}}"}}
+      ]
+    },
+    {
+      "name": "Owner",
+      "item": [
+        {"name":"Owner Dashboard","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{ownerToken}}"}],"url":"{{baseUrl}}/owner/dashboard"}}
+      ]
+    }
+  ],
+  "variable": [
+    {"key":"baseUrl","value":"http://localhost:5000/api"},
+    {"key":"customerToken","value":""},
+    {"key":"ownerToken","value":""},
+    {"key":"adminToken","value":""},
+    {"key":"restaurantId","value":""},
+    {"key":"reviewId","value":""},
+    {"key":"userId","value":""},
+    {"key":"search","value":""},
+    {"key":"location","value":""},
+    {"key":"cuisine","value":""}
+  ]
+}
