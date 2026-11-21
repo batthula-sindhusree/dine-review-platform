@@ -100,6 +100,28 @@ const getReviews = async (req, res) => {
     }
 };
 
+// GET LOGGED-IN CUSTOMER'S REVIEWS
+const getMyReviews = async (req, res) => {
+    try {
+        const reviews = await Review.find({
+            customer: req.user.id
+        })
+            .populate("restaurant", "name location cuisine")
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: reviews.length,
+            reviews
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 // UPDATE OWN REVIEW
 const updateReview = async (req, res) => {
     try {
@@ -208,6 +230,7 @@ const deleteReview = async (req, res) => {
 module.exports = {
     addReview,
     getReviews,
+    getMyReviews,
     updateReview,
     deleteReview
 };

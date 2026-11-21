@@ -17,7 +17,6 @@ const C = {
   red: "#a52a2a"
 };
 
-// ILLUSTRATED BIRYANI IMAGE
 const biryaniImage = `data:image/svg+xml,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
   <defs>
@@ -66,7 +65,6 @@ const biryaniImage = `data:image/svg+xml,${encodeURIComponent(`
 </svg>
 `)}`;
 
-// FOOD IMAGES
 const punjabiImage =
   "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=900";
 
@@ -164,7 +162,6 @@ const styles = {
   }
 };
 
-// FOOD IMAGE SELECTION
 function getFoodImage(restaurant) {
   const name = (restaurant?.name || "").toLowerCase();
   const cuisine = (restaurant?.cuisine || "").toLowerCase();
@@ -174,17 +171,13 @@ function getFoodImage(restaurant) {
     name.includes("punjabi") ||
     cuisine.includes("north indian") ||
     cuisine.includes("punjabi")
-  ) {
-    return punjabiImage;
-  }
+  ) return punjabiImage;
 
   if (
     name.includes("paradise") ||
     name.includes("biryani") ||
     cuisine.includes("biryani")
-  ) {
-    return biryaniImage;
-  }
+  ) return biryaniImage;
 
   if (name.includes("pizza") || cuisine.includes("pizza")) {
     return foodImages[1];
@@ -197,18 +190,11 @@ function getFoodImage(restaurant) {
   if (
     name.includes("spice garden") ||
     cuisine.includes("south indian")
-  ) {
-    return foodImages[4];
-  }
+  ) return foodImages[4];
 
-  if (cuisine.includes("salad")) {
-    return foodImages[4];
-  }
+  if (cuisine.includes("salad")) return foodImages[4];
 
-  if (
-    cuisine.includes("grill") ||
-    cuisine.includes("bbq")
-  ) {
+  if (cuisine.includes("grill") || cuisine.includes("bbq")) {
     return foodImages[5];
   }
 
@@ -300,9 +286,7 @@ function Sidebar({ role, active, setActive, logout, user }) {
             border: active === id
               ? `1px solid ${C.gold}`
               : "1px solid transparent",
-            background: active === id
-              ? "#ffffff20"
-              : "transparent",
+            background: active === id ? "#ffffff20" : "transparent",
             color: active === id ? "#f4d28c" : "#fff",
             cursor: "pointer",
             fontSize: 14,
@@ -351,6 +335,7 @@ function StatCard({ icon, label, value }) {
 function RestaurantCard({
   restaurant,
   distribution,
+  myRating,
   onWrite,
   onView,
   admin,
@@ -436,6 +421,20 @@ function RestaurantCard({
             )}
           </div>
         </div>
+
+        {/* CUSTOMER'S OWN RATING */}
+        {myRating ? (
+          <div style={{
+            margin: "10px 0 15px",
+            padding: 10,
+            background: "#f5e8cc",
+            borderRadius: 8,
+            color: C.maroon,
+            fontWeight: 700
+          }}>
+            Your Rating: {"⭐".repeat(myRating)} ({myRating}/5)
+          </div>
+        ) : null}
 
         <div style={{
           borderTop: `1px solid ${C.border}`,
@@ -548,7 +547,6 @@ function RestaurantCard({
   );
 }
 
-// APP
 function App() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState("");
@@ -562,6 +560,7 @@ function App() {
 
   const [restaurants, setRestaurants] = useState([]);
   const [ratingDistributions, setRatingDistributions] = useState({});
+  const [myRatings, setMyRatings] = useState({});
   const [users, setUsers] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [dashboard, setDashboard] = useState({});
@@ -614,6 +613,27 @@ function App() {
     }
   };
 
+  // LOAD LOGGED-IN CUSTOMER'S RATINGS
+  const loadMyRatings = async () => {
+    try {
+      const res = await axios.get(`${API}/reviews/my-reviews`, { headers });
+
+      const ratings = {};
+
+      (res.data.reviews || []).forEach((review) => {
+        const restaurantId = review.restaurant?._id || review.restaurant;
+
+        if (restaurantId) {
+          ratings[restaurantId] = review.rating;
+        }
+      });
+
+      setMyRatings(ratings);
+    } catch {
+      setMyRatings({});
+    }
+  };
+
   const loadRestaurantReviews = async (id) => {
     try {
       const res = await axios.get(`${API}/reviews/${id}`);
@@ -643,6 +663,10 @@ function App() {
       }
 
       await loadRestaurants();
+
+      if (user.role === "customer") {
+        await loadMyRatings();
+      }
     } catch (err) {
       notify(err.response?.data?.message || "Dashboard loading failed.");
     }
@@ -697,6 +721,7 @@ function App() {
     setUser(null);
     setToken("");
     setRestaurants([]);
+    setMyRatings({});
     setUsers([]);
     setReviews([]);
     setDashboard({});
@@ -741,6 +766,7 @@ function App() {
       setRating(5);
       notify("Review submitted successfully!");
       await loadRestaurants();
+      await loadMyRatings();
     } catch (err) {
       notify(err.response?.data?.message || "Review submission failed.");
     }
@@ -748,14 +774,20 @@ function App() {
 
   const updateReview = async (id, newRating, newComment) => {
     try {
+      if (!newComment.trim()) {
+        notify("Please enter your review.");
+        return;
+      }
+
       await axios.put(`${API}/reviews/${id}`, {
         rating: Number(newRating),
-        comment: newComment
+        comment: newComment.trim()
       }, { headers });
 
       setEditingReview(null);
       await loadRestaurantReviews(viewingRestaurant._id);
       await loadRestaurants();
+      await loadMyRatings();
       notify("Review updated successfully!");
     } catch (err) {
       notify(err.response?.data?.message || "Review update failed.");
@@ -769,6 +801,7 @@ function App() {
       await axios.delete(`${API}/reviews/${id}`, { headers });
       await loadRestaurantReviews(viewingRestaurant._id);
       await loadRestaurants();
+      await loadMyRatings();
       notify("Review deleted successfully!");
     } catch (err) {
       notify(err.response?.data?.message || "Review deletion failed.");
@@ -842,7 +875,6 @@ function App() {
     }
   };
 
-  // DELETE USER (ADMIN)
   const deleteAdminUser = async (id, name) => {
     if (!window.confirm(`Are you sure you want to delete ${name}?`)) {
       return;
@@ -1357,7 +1389,6 @@ function App() {
                         {u.role}
                       </span>
 
-                      {/* DELETE BUTTON FOR CUSTOMER AND OWNER ACCOUNTS */}
                       {u.role !== "admin" && (
                         <div>
                           <button
@@ -1447,6 +1478,7 @@ function App() {
                       key={r._id}
                       restaurant={r}
                       distribution={ratingDistributions[r._id]}
+                      myRating={myRatings[r._id]}
                       onWrite={openWrite}
                       onView={openView}
                     />
